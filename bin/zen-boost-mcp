@@ -1,0 +1,14 @@
+#!/usr/bin/env php
+<?php
+
+require_once dirname(__DIR__) . '/Console/bootstrap.php';
+
+$projectRoot = getenv('ZEN_BOOST_PROJECT_ROOT') ?: getcwd();
+if (!is_string($projectRoot) || !is_file(rtrim($projectRoot, '/\\') . '/includes/application_top.php')) {
+    $projectRoot = null;
+}
+
+$paths = new ZenBoostPathHelper(dirname(__DIR__), $projectRoot);
+$server = new ZenBoostMcpServer($paths);
+
+exit($server->run());
