@@ -75,7 +75,7 @@ The plugin-local helper script at `bin/zen-boost-mcp` is a development shim for 
 
 When using the development shim from the standalone plugin repository, run it from the Zen Cart checkout root or set `ZEN_BOOST_PROJECT_ROOT` so repo inspection tools can resolve the target project correctly.
 
-Client integration notes are in [docs/mcp-clients.md](/home/wilt/Projects/zencart-zen-boost/docs/mcp-clients.md).
+Client integration notes are in [docs/mcp-clients.md](docs/mcp-clients.md).
 
 Current implemented MCP tools:
 
