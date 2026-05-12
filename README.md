@@ -29,8 +29,11 @@ From an installed Zen Cart checkout:
 bin/zencart zen-boost:docs:fetch
 bin/zencart zen-boost:catalog:build
 bin/zencart zen-boost:docs:search manifest
+bin/zencart zen-boost:docs:ask <question>
+bin/zencart zen-boost:docs:compare <question>
 bin/zencart zen-boost:manifest:inspect zc_plugins/zen-boost/v1.0.0/manifest.php
 bin/zencart zen-boost:plugin:doctor zc_plugins/zen-boost/v1.0.0
+bin/zencart zen-boost:make:plugin my-plugin
 bin/zencart zen-boost:mcp:serve
 ```
 
@@ -61,7 +64,6 @@ Current implemented capabilities:
 Not implemented yet:
 
 - reusable task-specific skills
-- plugin scaffolding commands
 
 ## Current MCP Slice
 
