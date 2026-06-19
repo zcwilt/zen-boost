@@ -609,8 +609,8 @@
     {
       "id": "debug-test-failure",
       "title": "Debug Test Failure",
-      "summary": "Debug a failing Zen Cart core or plugin-local test by narrowing the failure mode before changing production code.",
-      "intent": "Separate real behavior regressions from bootstrap, DB, grouping, or isolation failures.",
+      "summary": "Debug a failing Zen Cart core or plugin-local test by isolating the first real failure and narrowing the failure mode before changing production code.",
+      "intent": "Separate real behavior regressions from bootstrap, DB, grouping, isolation, fixture, and test-expectation failures.",
       "tags": ["tests", "debugging", "core", "plugin"],
       "when_to_use": [
         "A unit, storefront, admin, or plugin-local test is failing.",
@@ -629,12 +629,15 @@
       "workflow_steps": [
         "Classify the failure as unit, storefront feature, admin feature, or plugin-local.",
         "Rerun the smallest relevant command with a narrow filter.",
-        "Check whether the issue is code behavior, runtime bootstrap, DB setup, grouping, or isolation.",
+        "Read the first real failure before following cascading errors.",
+        "Check whether the issue is code behavior, test expectation, runtime bootstrap, DB setup, grouping, or isolation.",
+        "Check common Zen Cart plugin causes such as missing install state, wrong plugin layout, missing constants, or runtime autoload assumptions.",
         "Inspect recent test logs and artifacts when the failure depends on in-process runtime behavior."
       ],
       "validation_steps": [
         "Confirm the failure is reproducible with the smallest relevant command.",
-        "Confirm the suspected cause is classified before changing production code."
+        "Confirm the suspected cause is classified before changing production code.",
+        "Confirm the chosen fix targets the cause instead of masking the symptom."
       ],
       "anti_patterns": [
         "Do not patch production code before isolating whether the failure is actually a test-runtime issue.",
@@ -780,7 +783,7 @@
       "id": "choose-test-scope",
       "title": "Choose Test Scope",
       "summary": "Decide whether a Zen Cart change belongs in a core unit test, core feature test, or plugin-local test before writing coverage.",
-      "intent": "Prevent misclassified tests and steer agents toward the smallest relevant suite and runner command.",
+      "intent": "Prevent misclassified tests and steer agents toward the smallest relevant suite, runner command, and fix location.",
       "tags": ["tests", "planning", "core", "plugin"],
       "when_to_use": [
         "A change needs regression coverage but the right test location is unclear.",
@@ -800,6 +803,7 @@
         "Use core unit tests for isolated logic under not_for_release/testFramework/Unit/.",
         "Use core feature tests for storefront or admin runtime behavior under FeatureStore/ or FeatureAdmin/.",
         "Use plugin-local tests when the behavior belongs to one encapsulated plugin and should travel with that plugin.",
+        "When a test fails, classify whether the fix belongs in implementation, fixture/setup, or test expectation before adding coverage.",
         "Make plugin filesystem or installation-state tests serial and plugin-filesystem when they mutate runtime state.",
         "Prefer the smallest relevant composer script or PHPUnit filter instead of broad suite runs."
       ],
