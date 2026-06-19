@@ -56,4 +56,35 @@ abstract class AbstractZenAiAssistCommand extends ConsoleCommand
     {
         return new \ZenAiAssistJsonStorage();
     }
+
+    /**
+     * @since ZC v3.0.0
+     */
+    protected function loadDocsIndex(): array
+    {
+        $storage = $this->storage();
+        $paths = $this->paths();
+        $docsIndex = $storage->readJsonFile($paths->docsIndexPath());
+
+        if (($docsIndex['chunks'] ?? []) !== []) {
+            return $docsIndex;
+        }
+
+        $documents = [];
+        foreach ($paths->listJsonFiles($paths->docsCacheDirectory()) as $filePath) {
+            $document = $storage->readJsonFile($filePath);
+            if ($document !== []) {
+                $documents[] = $document;
+            }
+        }
+
+        if ($documents === []) {
+            return $docsIndex;
+        }
+
+        $docsIndex = (new \ZenAiAssistDocChunker())->buildIndex($documents);
+        $storage->writeJsonFile($paths->docsIndexPath(), $docsIndex);
+
+        return $docsIndex;
+    }
 }

@@ -57,11 +57,9 @@ class DocsSearchCommand extends AbstractZenAiAssistCommand
             return 1;
         }
 
-        $storage = $this->storage();
-        $paths = $this->paths();
         $search = new \ZenAiAssistSearchService();
-        $docsIndex = $storage->readJsonFile($paths->docsIndexPath());
-        $repoIndex = $storage->readJsonFile($paths->repoIndexPath());
+        $docsIndex = $this->loadDocsIndex();
+        $repoIndex = $this->storage()->readJsonFile($this->paths()->repoIndexPath());
         $results = $search->search($docsIndex, $repoIndex, $query);
 
         if ($results === []) {

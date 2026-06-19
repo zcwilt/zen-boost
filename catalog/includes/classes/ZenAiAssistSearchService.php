@@ -12,6 +12,7 @@ class ZenAiAssistSearchService
             'manifest' => ['manifest', 'pluginversion', 'pluginname'],
             'installer' => ['installer', 'scriptedinstaller', 'install', 'uninstall', 'upgrade'],
             'admin' => ['admin', 'menu', 'extra_definitions'],
+            'page' => ['page', 'pages', 'entrypoint', 'entrypoints', 'wiring', 'wired'],
             'storefront' => ['storefront', 'catalog', 'template', 'header_php'],
             'filename' => ['filename', 'filename_', 'constant', 'constants'],
             'observer' => ['observer', 'observers', 'auto_'],
@@ -69,7 +70,7 @@ class ZenAiAssistSearchService
     private function searchRecords(array $records, string $query, int $limit, string $type): array
     {
         $profile = $this->classifyQuery($query);
-        $terms = $profile['terms'];
+        $terms = $this->expandedTerms($profile, $type);
         $results = [];
 
         foreach ($records as $record) {
@@ -87,6 +88,23 @@ class ZenAiAssistSearchService
         });
 
         return array_slice($results, 0, $limit);
+    }
+
+    private function expandedTerms(array $profile, string $type): array
+    {
+        $terms = is_array($profile['terms'] ?? null) ? $profile['terms'] : [];
+        $categories = is_array($profile['categories'] ?? null) ? $profile['categories'] : [];
+
+        if (in_array('admin', $categories, true) && in_array('page', $categories, true) && in_array('plugin', $categories, true)) {
+            $terms = array_merge(
+                $terms,
+                $type === 'docs'
+                    ? ['menu', 'language', 'help', 'head', 'content', 'sanitization']
+                    : ['entrypoint', 'menu', 'language', 'extra_definitions', 'sanitization']
+            );
+        }
+
+        return array_values(array_unique($terms));
     }
 
     private function scoreRecord(array $record, array $terms, string $type, array $profile): int
@@ -173,6 +191,7 @@ class ZenAiAssistSearchService
         }
 
         $score += $this->profileBoost($profile, $role, $side, $relationshipTypes, $queryHints, $pluginKey, $page);
+        $score += $this->contextPenalty($profile, $role, $side);
 
         return $score;
     }
@@ -194,6 +213,7 @@ class ZenAiAssistSearchService
                 'manifest' => $role === 'plugin-manifest' ? 14 : (str_contains($relationshipTypes, 'plugin-filenames') ? 3 : 0),
                 'installer' => $role === 'plugin-installer' ? 14 : (str_contains($relationshipTypes, 'plugin-installer') ? 4 : 0),
                 'admin' => ($side === 'admin' || $role === 'admin-page-entrypoint') ? 10 : 0,
+                'page' => in_array($role, ['admin-page-entrypoint', 'page-module', 'template', 'language-file', 'documentation'], true) ? 8 : 0,
                 'storefront' => ($side === 'catalog' || $role === 'page-module' || $role === 'template') ? 10 : 0,
                 'filename' => ($role === 'plugin-filenames' || str_contains($queryHints, 'filename')) ? 12 : 0,
                 'observer' => $role === 'observer-class' ? 12 : 0,
@@ -209,13 +229,65 @@ class ZenAiAssistSearchService
             $score += 4;
         }
 
+        if (in_array('admin', $categories, true) && in_array('page', $categories, true)) {
+            if ($role === 'admin-page-entrypoint') {
+                $score += 18;
+            }
+
+            if ($role === 'documentation') {
+                $score += 10;
+            }
+        }
+
+        return $score;
+    }
+
+    private function contextPenalty(array $profile, string $role, string $side): int
+    {
+        $categories = $profile['categories'] ?? [];
+        $score = 0;
+
+        if (in_array('admin', $categories, true) && $side === 'catalog') {
+            $score -= 12;
+        }
+
+        if (in_array('storefront', $categories, true) && $side === 'admin') {
+            $score -= 12;
+        }
+
+        if (in_array('admin', $categories, true) && in_array('page', $categories, true) && $role === 'language-file') {
+            $score -= 6;
+        }
+
         return $score;
     }
 
     private function terms(string $query): array
     {
-        $pieces = preg_split('/\s+/', mb_strtolower(trim($query))) ?: [];
+        $pieces = preg_split('/[^a-z0-9_]+/i', mb_strtolower(trim($query))) ?: [];
+        $stopWords = [
+            'a',
+            'an',
+            'and',
+            'are',
+            'be',
+            'for',
+            'how',
+            'in',
+            'is',
+            'of',
+            'on',
+            'or',
+            'should',
+            'the',
+            'to',
+            'what',
+            'when',
+            'with',
+        ];
 
-        return array_values(array_filter($pieces, static fn (string $term): bool => $term !== ''));
+        return array_values(array_filter($pieces, static function (string $term) use ($stopWords): bool {
+            return $term !== '' && !in_array($term, $stopWords, true);
+        }));
     }
 }

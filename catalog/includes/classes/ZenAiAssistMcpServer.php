@@ -162,7 +162,7 @@ class ZenAiAssistMcpServer
             throw new InvalidArgumentException('search_docs requires a non-empty query.');
         }
 
-        $docsIndex = $this->storage->readJsonFile($this->paths->docsIndexPath());
+        $docsIndex = $this->loadDocsIndex();
 
         return [
             'query' => $query,
@@ -196,7 +196,7 @@ class ZenAiAssistMcpServer
             throw new InvalidArgumentException('compare_docs_to_code requires a non-empty query.');
         }
 
-        $docsIndex = $this->storage->readJsonFile($this->paths->docsIndexPath());
+        $docsIndex = $this->loadDocsIndex();
         $repoIndex = $this->storage->readJsonFile($this->paths->repoIndexPath());
 
         return $this->comparison->compare($docsIndex, $repoIndex, $query, $limit);
@@ -278,6 +278,32 @@ class ZenAiAssistMcpServer
         }
 
         return $this->guidance->readTopic($topic);
+    }
+
+    private function loadDocsIndex(): array
+    {
+        $docsIndex = $this->storage->readJsonFile($this->paths->docsIndexPath());
+
+        if (($docsIndex['chunks'] ?? []) !== []) {
+            return $docsIndex;
+        }
+
+        $documents = [];
+        foreach ($this->paths->listJsonFiles($this->paths->docsCacheDirectory()) as $filePath) {
+            $document = $this->storage->readJsonFile($filePath);
+            if ($document !== []) {
+                $documents[] = $document;
+            }
+        }
+
+        if ($documents === []) {
+            return $docsIndex;
+        }
+
+        $docsIndex = (new ZenAiAssistDocChunker())->buildIndex($documents);
+        $this->storage->writeJsonFile($this->paths->docsIndexPath(), $docsIndex);
+
+        return $docsIndex;
     }
 
     private function callListSkillTopics(): array

@@ -42,11 +42,9 @@ class DocsCompareCommand extends AbstractZenAiAssistCommand
             return 1;
         }
 
-        $storage = $this->storage();
-        $paths = $this->paths();
         $comparison = new \ZenAiAssistComparisonService();
-        $docsIndex = $storage->readJsonFile($paths->docsIndexPath());
-        $repoIndex = $storage->readJsonFile($paths->repoIndexPath());
+        $docsIndex = $this->loadDocsIndex();
+        $repoIndex = $this->storage()->readJsonFile($this->paths()->repoIndexPath());
         $result = $comparison->compare($docsIndex, $repoIndex, $query);
 
         $output->writeln('Query: ' . $result['query']);
