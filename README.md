@@ -16,11 +16,11 @@ It is local-first and does not need a separate database or search service.
 Install or enable the plugin, then build its local data:
 
 ```bash
-bin/zencart ai:docs:fetch
-bin/zencart ai:catalog:build
+php bin/zencart ai:docs:fetch
+php bin/zencart ai:catalog:build
 ```
 
-Then use the commands you need:
+If your checkout uses DDEV, the equivalent commands are:
 
 ```bash
 ddev php bin/zencart ai:docs:fetch
@@ -28,9 +28,11 @@ ddev php bin/zencart ai:catalog:build
 ddev php bin/zencart ai:mcp:serve
 ```
 
-Underlying Zen Cart command names are:
+Direct Zen Cart command forms are:
 
 ```bash
+bin/zencart ai:docs:fetch
+bin/zencart ai:catalog:build
 bin/zencart ai:docs:search manifest
 bin/zencart ai:docs:ask "How should an encapsulated plugin admin page be wired?"
 bin/zencart ai:plugin:doctor zc_plugins/zen-ai-assist/v1.0.0

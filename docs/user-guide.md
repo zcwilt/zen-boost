@@ -72,15 +72,15 @@ Zen AI Assist is most useful after its docs and repo catalogs are prepared.
 Run:
 
 ```bash
-ddev php bin/zencart ai:docs:fetch
-ddev php bin/zencart ai:catalog:build
+php bin/zencart ai:docs:fetch
+php bin/zencart ai:catalog:build
 ```
 
-Underlying Zen Cart commands are:
+If your checkout uses DDEV, the equivalent commands are:
 
 ```bash
-bin/zencart ai:docs:fetch
-bin/zencart ai:catalog:build
+ddev php bin/zencart ai:docs:fetch
+ddev php bin/zencart ai:catalog:build
 ```
 
 That populates:
@@ -181,16 +181,22 @@ Use this to create a baseline encapsulated plugin structure.
 Start the MCP server with:
 
 ```bash
-ddev php bin/zencart ai:mcp:serve
+php bin/zencart ai:mcp:serve
 ```
 
-Underlying Zen Cart command:
+You can also run:
 
 ```bash
 bin/zencart ai:mcp:serve
 ```
 
-Zen AI Assist uses stdio transport. Your editor or agent client should launch that command as a local subprocess. In this repository's local development environment, the verified MCP client launch form is `ddev php bin/zencart ai:mcp:serve`.
+If your checkout uses DDEV, the equivalent command is:
+
+```bash
+ddev php bin/zencart ai:mcp:serve
+```
+
+Zen AI Assist uses stdio transport. Your editor or agent client should launch that command as a local subprocess. In this repository's local development environment, the verified DDEV launch form is `ddev php bin/zencart ai:mcp:serve`.
 
 The MCP server is the best interface when:
 
@@ -244,22 +250,22 @@ Check:
 
 - the plugin is present under `zc_plugins/zen-ai-assist/v1.0.0/`
 - the plugin is installed/enabled in Plugin Manager
-- `bin/zencart` itself is working, or `ddev php bin/zencart` if your checkout runs inside DDEV
+- `bin/zencart` or `php bin/zencart` itself is working, or `ddev php bin/zencart` if your checkout runs inside DDEV
 
 ### Docs search returns weak or empty results
 
 Refresh the local data:
 
 ```bash
-ddev php bin/zencart ai:docs:fetch
-ddev php bin/zencart ai:catalog:build
+php bin/zencart ai:docs:fetch
+php bin/zencart ai:catalog:build
 ```
 
-Underlying commands:
+If your checkout uses DDEV:
 
 ```bash
-bin/zencart ai:docs:fetch
-bin/zencart ai:catalog:build
+ddev php bin/zencart ai:docs:fetch
+ddev php bin/zencart ai:catalog:build
 ```
 
 ### Repo results look stale
@@ -267,13 +273,19 @@ bin/zencart ai:catalog:build
 Rebuild the repo catalog:
 
 ```bash
-ddev php bin/zencart ai:catalog:build
+php bin/zencart ai:catalog:build
 ```
 
-Underlying command:
+You can also run:
 
 ```bash
 bin/zencart ai:catalog:build
+```
+
+If your checkout uses DDEV:
+
+```bash
+ddev php bin/zencart ai:catalog:build
 ```
 
 ### Installed-plugin inspection fails
@@ -291,7 +303,7 @@ Check:
 
 Check:
 
-- `ddev php bin/zencart ai:mcp:serve` runs in a DDEV-backed checkout, or `bin/zencart ai:mcp:serve` runs directly from the store root
+- `php bin/zencart ai:mcp:serve`, `bin/zencart ai:mcp:serve`, or `ddev php bin/zencart ai:mcp:serve` runs correctly for your checkout environment
 - the client launches the correct checkout path
 - the client tool cache has been refreshed or the client restarted
 

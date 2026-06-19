@@ -8,10 +8,16 @@ Canonical server command for an installed Zen Cart checkout:
 bin/zencart ai:mcp:serve
 ```
 
-If your local checkout is normally accessed through DDEV, the recommended MCP client command is:
+If your local checkout is normally accessed through DDEV, the equivalent MCP client command is:
 
 ```bash
 ddev php bin/zencart ai:mcp:serve
+```
+
+If your checkout is not using DDEV and you prefer to invoke PHP explicitly, use:
+
+```bash
+php bin/zencart ai:mcp:serve
 ```
 
 Zen AI Assist uses stdio transport. The client should launch the command as a local subprocess and communicate over standard input and output.
@@ -22,7 +28,7 @@ The current MCP surface includes docs search, repo search, docs-versus-code comp
 
 - Zen AI Assist is installed in the target Zen Cart checkout.
 - The Zen Cart checkout has a working `bin/zencart`.
-- You can run `bin/zencart ai:mcp:serve` from the store root.
+- You can run `bin/zencart ai:mcp:serve` or `php bin/zencart ai:mcp:serve` from the store root.
 - If your local environment uses DDEV, you can run `ddev php bin/zencart ai:mcp:serve`.
 - For tools that inspect installed plugin state, the store's DB configuration must be reachable from the client runtime.
 
@@ -43,6 +49,20 @@ Example:
   "servers": {
     "zen-ai-assist": {
       "type": "stdio",
+      "command": "php",
+      "args": ["bin/zencart", "ai:mcp:serve"]
+    }
+  }
+}
+```
+
+If your checkout uses DDEV, use:
+
+```json
+{
+  "servers": {
+    "zen-ai-assist": {
+      "type": "stdio",
       "command": "ddev",
       "args": ["php", "bin/zencart", "ai:mcp:serve"]
     }
@@ -54,7 +74,7 @@ Notes:
 
 - Open the Zen Cart checkout itself as the VS Code workspace root, not the standalone `zencart-zen-ai-assist` repo.
 - The `ddev` launch form is the verified setup for this repository's local development environment.
-- If your checkout is not using DDEV, launch the underlying Zen Cart command directly with your local PHP runtime instead.
+- If your checkout is not using DDEV, use `command: "php"` with `args: ["bin/zencart", "ai:mcp:serve"]`.
 - After editing the config, use `MCP: List Servers` or restart VS Code if the server does not appear immediately.
 
 Useful VS Code commands:
@@ -75,6 +95,19 @@ You can configure MCP servers in:
 - project scope: `.junie/mcp/mcp.json`
 
 Recommended project-level example:
+
+```json
+{
+  "mcpServers": {
+    "zen-ai-assist": {
+      "command": "php",
+      "args": ["bin/zencart", "ai:mcp:serve"]
+    }
+  }
+}
+```
+
+If your checkout uses DDEV, use:
 
 ```json
 {
@@ -120,7 +153,13 @@ codex mcp --help
 codex mcp add --help
 ```
 
-3. Add a local stdio server that launches:
+3. Add a local stdio server that launches one of:
+
+```bash
+php /absolute/path/to/your/store/bin/zencart ai:mcp:serve
+```
+
+or, for DDEV-backed checkouts:
 
 ```bash
 ddev php /absolute/path/to/your/store/bin/zencart ai:mcp:serve
@@ -153,11 +192,11 @@ This is useful for development and testing, but it is not the stable integration
 ## Troubleshooting
 
 - Server does not start:
-  Ensure `bin/zencart ai:mcp:serve` runs from the store root, or `ddev php bin/zencart ai:mcp:serve` if your checkout uses DDEV.
+  Ensure `bin/zencart ai:mcp:serve`, `php bin/zencart ai:mcp:serve`, or `ddev php bin/zencart ai:mcp:serve` runs from the store root for your environment.
 - Tools are missing:
-  Rebuild catalogs with `bin/zencart ai:catalog:build` and reconnect the client. Generated indexes are written to `cache/zen-ai-assist/catalogs/`.
+  Rebuild catalogs with `bin/zencart ai:catalog:build` or `php bin/zencart ai:catalog:build` and reconnect the client. Generated indexes are written to `cache/zen-ai-assist/catalogs/`.
 - Docs tools return no useful results:
-  Fetch docs first with `bin/zencart ai:docs:fetch`, then rebuild catalogs. Fetched docs are cached in `cache/zen-ai-assist/docs-cache/`.
+  Fetch docs first with `bin/zencart ai:docs:fetch` or `php bin/zencart ai:docs:fetch`, then rebuild catalogs. Fetched docs are cached in `cache/zen-ai-assist/docs-cache/`.
 - Installed plugin inspection fails:
   Check store DB connectivity and configure files.
 - MCP client shows stale tools:
