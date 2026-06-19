@@ -6,6 +6,7 @@ Use this skill when an encapsulated plugin is not loading, is partially wired, o
 
 - inspect `manifest.php` for baseline fields and version identity
 - inspect `Installer/` for install, uninstall, and upgrade hooks
+- inspect `database_tables.php` and `psr4Autoload.php` when table constants or extra autoload wiring may be involved
 - verify `filenames.php` constants match the intended pages
 - check catalog pages for `header_php.php`, language files, and templates
 - check admin pages for language files and `extra_definitions` menu wiring

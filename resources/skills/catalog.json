@@ -5,7 +5,7 @@
       "title": "Build Encapsulated Plugin",
       "summary": "Create or expand an encapsulated Zen Cart plugin using the expected manifest, installer, filenames, and versioned directory layout.",
       "intent": "Guide an agent through the baseline structure required for a healthy encapsulated plugin.",
-      "tags": ["plugin", "scaffold", "manifest", "installer"],
+      "tags": ["plugin", "scaffold", "manifest", "installer", "autoload"],
       "when_to_use": [
         "A new Zen Cart feature should live in a plugin instead of core files.",
         "An existing plugin is missing baseline encapsulated structure."
@@ -18,12 +18,16 @@
       "source_refs": [
         "docs: https://docs.zen-cart.com/dev/plugins/",
         "docs: https://docs.zen-cart.com/dev/plugins/encapsulated_plugins/",
-        "code: zc_plugins/*/*/manifest.php"
+        "code: zc_plugins/*/*/manifest.php",
+        "code: zc_plugins/.gitignore"
       ],
       "workflow_steps": [
         "Start with manifest.php, filenames.php, and Installer/ScriptedInstaller.php.",
+        "Add database_tables.php when the plugin introduces table-name constants.",
         "Create catalog and admin directories only where the feature actually needs them.",
+        "Add psr4Autoload.php only when extra namespace registration or plugin-local Composer autoloading is required.",
         "Keep runtime wiring inside the versioned plugin tree instead of editing bootstrap files directly.",
+        "Allowlist the plugin in zc_plugins/.gitignore when creating a new plugin.",
         "Install or enable the plugin through Plugin Manager before debugging runtime behavior."
       ],
       "validation_steps": [
@@ -68,7 +72,7 @@
       "title": "Create Admin Plugin Page",
       "summary": "Add a Zen Cart admin page inside an encapsulated plugin with the expected language and menu-definition files.",
       "intent": "Keep admin features encapsulated and correctly wired for admin menu and language loading.",
-      "tags": ["admin", "page", "plugin", "language"],
+      "tags": ["admin", "page", "plugin", "language", "sanitization"],
       "when_to_use": [
         "A task requires a new admin page.",
         "An existing encapsulated plugin admin page is missing language or menu wiring."
@@ -80,13 +84,16 @@
       ],
       "source_refs": [
         "docs: https://docs.zen-cart.com/dev/plugins/encapsulated_plugins/",
+        "docs: https://docs.zen-cart.com/dev/code/admin_sanitization/",
         "code: zc_plugins/*/*/admin/"
       ],
       "workflow_steps": [
         "Create the admin entrypoint under admin/ inside the plugin.",
         "Add the matching admin language file under admin/includes/languages/english/.",
         "Add the extra_definitions menu file when the page should appear in admin navigation.",
-        "Register the admin page from the installer instead of editing core admin menus."
+        "Register the admin page from the installer instead of editing core admin menus.",
+        "Name page-specific admin JavaScript after the PHP page filename when custom JS is needed.",
+        "Preserve admin sanitization behavior and use documented whitelisting when a field needs relaxed sanitization."
       ],
       "validation_steps": [
         "Confirm the plugin contains at least one admin entrypoint.",
@@ -129,7 +136,7 @@
       "title": "Create Storefront Page",
       "summary": "Add a storefront page inside an encapsulated plugin with the expected header module, language file, and template wiring.",
       "intent": "Guide an agent through the normal Zen Cart encapsulated-plugin page-module flow instead of inventing ad hoc routing patterns.",
-      "tags": ["storefront", "page", "template", "language"],
+      "tags": ["storefront", "page", "template", "language", "output"],
       "when_to_use": [
         "A feature needs a new storefront page.",
         "A page exists but its page-module files are incomplete."
@@ -147,7 +154,9 @@
       "workflow_steps": [
         "Add or confirm the FILENAME_* constant before linking to the page.",
         "Create header_php.php under the page module directory.",
+        "Add main_template_vars.php when the template needs structured variables.",
         "Add the matching language file and template file.",
+        "Use normal template override paths when the active template should override default rendering.",
         "Keep user output protected with zen_output_string_protected() when rendering user data."
       ],
       "validation_steps": [
@@ -345,10 +354,12 @@
       ],
       "source_refs": [
         "code: catalog/includes/classes/ZenAiAssistDoctorService.php",
-        "code: catalog/includes/classes/ZenAiAssistRuntimeInspector.php"
+        "code: catalog/includes/classes/ZenAiAssistRuntimeInspector.php",
+        "docs: https://docs.zen-cart.com/dev/plugins/encapsulated_plugins/"
       ],
       "workflow_steps": [
         "Inspect manifest.php and the Installer directory first.",
+        "Inspect database_tables.php and psr4Autoload.php when table constants or extra autoload wiring may be involved.",
         "Check filenames.php coverage for intended entrypoints.",
         "Verify catalog and admin page wiring, including language and template files.",
         "Check Plugin Manager state before assuming bootstrap discovery is broken."
@@ -634,6 +645,178 @@
       ],
       "validation_rules": [],
       "content_file": "debug-test-failure.md"
+    },
+    {
+      "id": "review-zen-cart-change",
+      "title": "Review Zen Cart Change",
+      "summary": "Review a Zen Cart patch or pull request as a maintainer, prioritizing defects, compatibility risks, and missing tests over broad cleanup.",
+      "intent": "Keep review output aligned with Zen Cart maintainer expectations instead of generic style-first review habits.",
+      "tags": ["review", "maintainer", "compatibility", "tests"],
+      "when_to_use": [
+        "A user asks for a review of a Zen Cart patch or pull request.",
+        "A change touches bootstrap, plugin runtime, or behavior that could regress production installs."
+      ],
+      "required_context": [
+        "Patch, diff, or changed files",
+        "Whether the change is core or plugin-related",
+        "Any available test evidence"
+      ],
+      "source_refs": [
+        "code: AGENTS.md",
+        "code: CONVENTIONS.md"
+      ],
+      "workflow_steps": [
+        "Lead with material findings such as bugs, regressions, compatibility risks, deployment risks, and missing tests.",
+        "Use CONVENTIONS.md and AGENTS.md as the review baseline instead of broad refactor preferences.",
+        "Flag edits to bootstrap or path files when an extension point would be the safer fit.",
+        "Review plugin changes against encapsulated layout, installer conventions, and runtime enablement expectations.",
+        "Mention test gaps and commands not run when confidence depends on them."
+      ],
+      "validation_steps": [
+        "Confirm findings are ordered by severity.",
+        "Confirm file and line references are included where practical.",
+        "Confirm the review distinguishes defects from optional cleanup."
+      ],
+      "anti_patterns": [
+        "Do not lead with style nits when behavior, compatibility, or security risks exist.",
+        "Do not recommend broad rewrites unrelated to the change under review."
+      ],
+      "expected_outputs": [
+        "severity-ordered review findings",
+        "clear assumptions and testing gaps"
+      ],
+      "validation_rules": [],
+      "content_file": "review-zen-cart-change.md"
+    },
+    {
+      "id": "security-review",
+      "title": "Review Security-Sensitive Change",
+      "summary": "Review Zen Cart changes that touch request handling, output, admin inputs, files, redirects, or listener endpoints with the project's specific security rules in mind.",
+      "intent": "Apply Zen Cart-specific security checks consistently before shipping changes that cross trust boundaries.",
+      "tags": ["security", "output", "sanitization", "review"],
+      "when_to_use": [
+        "A change touches request handling, output escaping, admin inputs, redirects, uploads, downloads, or webhook-like listeners.",
+        "A review needs to confirm Zen Cart's existing trust-boundary protections remain intact."
+      ],
+      "required_context": [
+        "Changed files or patch",
+        "Whether the flow is storefront, admin, or listener-driven",
+        "Any user-controlled inputs or outputs involved"
+      ],
+      "source_refs": [
+        "code: AGENTS.md",
+        "docs: https://docs.zen-cart.com/dev/code/admin_sanitization/",
+        "code: includes/application_top.php"
+      ],
+      "workflow_steps": [
+        "Preserve the early request-sanitizing behavior in includes/application_top.php.",
+        "Check whether user-controlled output is escaped with zen_output_string_protected().",
+        "Avoid spreading raw $_GET, $_POST, or $_REQUEST access when established helpers exist.",
+        "Require documented admin sanitization whitelisting before relaxing admin-side sanitization.",
+        "Inspect file paths, redirects, download handlers, uploads, and listener endpoints for traversal or trust-boundary mistakes."
+      ],
+      "validation_steps": [
+        "Confirm user-controlled output is protected.",
+        "Confirm admin sanitization changes are explicit and documented.",
+        "Confirm file or redirect handling does not widen the trust boundary unexpectedly."
+      ],
+      "anti_patterns": [
+        "Do not weaken bootstrap sanitization just to make a feature easier to wire.",
+        "Do not hand-build query strings or output HTML when established helpers already exist."
+      ],
+      "expected_outputs": [
+        "security findings",
+        "trust-boundary assessment"
+      ],
+      "validation_rules": [],
+      "content_file": "security-review.md"
+    },
+    {
+      "id": "plugin-runtime-state",
+      "title": "Check Plugin Runtime State",
+      "summary": "Separate plugin filesystem presence from installed runtime state before debugging why an encapsulated plugin is not loading.",
+      "intent": "Keep plugin debugging grounded in Plugin Manager state instead of assuming every on-disk plugin should already be bootstrapped.",
+      "tags": ["plugin", "runtime", "installation", "debugging"],
+      "when_to_use": [
+        "A plugin exists on disk but may not be installed or enabled.",
+        "Multiple plugin versions exist and runtime behavior depends on which version Plugin Manager has registered."
+      ],
+      "required_context": [
+        "Plugin unique key",
+        "Plugin root on disk",
+        "Any known Plugin Manager or DB state"
+      ],
+      "source_refs": [
+        "code: AGENTS.md",
+        "code: includes/application_top.php",
+        "code: plugin_control"
+      ],
+      "workflow_steps": [
+        "Separate filesystem presence from installed runtime state before debugging bootstrap discovery.",
+        "Check Plugin Manager state first, because encapsulated plugins are only discovered after registration in plugin_control.",
+        "Use the admin Plugin Manager UI for normal local enablement when possible.",
+        "Use direct plugin_control and plugin_control_versions inserts only in tests or CI setup, never in application code.",
+        "Confirm the installed version matches the versioned plugin directory being debugged."
+      ],
+      "validation_steps": [
+        "Confirm the plugin root exists on disk.",
+        "Confirm installed state was checked before blaming bootstrap wiring.",
+        "Confirm any direct DB enablement is limited to test or CI setup."
+      ],
+      "anti_patterns": [
+        "Do not assume the newest plugin directory is the runtime-active version.",
+        "Do not treat direct DB enablement as a normal production installation workflow."
+      ],
+      "expected_outputs": [
+        "filesystem versus installed-state diagnosis",
+        "next enablement or debugging step"
+      ],
+      "validation_rules": [],
+      "content_file": "plugin-runtime-state.md"
+    },
+    {
+      "id": "choose-test-scope",
+      "title": "Choose Test Scope",
+      "summary": "Decide whether a Zen Cart change belongs in a core unit test, core feature test, or plugin-local test before writing coverage.",
+      "intent": "Prevent misclassified tests and steer agents toward the smallest relevant suite and runner command.",
+      "tags": ["tests", "planning", "core", "plugin"],
+      "when_to_use": [
+        "A change needs regression coverage but the right test location is unclear.",
+        "An agent needs to choose between central core tests and plugin-local tests."
+      ],
+      "required_context": [
+        "Changed behavior",
+        "Whether the code is core or plugin-local",
+        "Whether runtime bootstrap, DB state, or filesystem mutation is involved"
+      ],
+      "source_refs": [
+        "code: AGENTS.md",
+        "code: composer.json",
+        "code: not_for_release/testFramework/"
+      ],
+      "workflow_steps": [
+        "Use core unit tests for isolated logic under not_for_release/testFramework/Unit/.",
+        "Use core feature tests for storefront or admin runtime behavior under FeatureStore/ or FeatureAdmin/.",
+        "Use plugin-local tests when the behavior belongs to one encapsulated plugin and should travel with that plugin.",
+        "Make plugin filesystem or installation-state tests serial and plugin-filesystem when they mutate runtime state.",
+        "Prefer the smallest relevant composer script or PHPUnit filter instead of broad suite runs."
+      ],
+      "validation_steps": [
+        "Confirm the chosen test scope matches the changed behavior.",
+        "Confirm runtime-sensitive tests are not misclassified as unit tests.",
+        "Confirm filesystem-mutating plugin tests use the required isolation tags."
+      ],
+      "anti_patterns": [
+        "Do not use a unit test when the behavior depends on storefront or admin runtime bootstrapping.",
+        "Do not put plugin-local coverage into the central core test tree when the behavior belongs to one plugin."
+      ],
+      "expected_outputs": [
+        "recommended test location",
+        "recommended runner command",
+        "required grouping tags when applicable"
+      ],
+      "validation_rules": [],
+      "content_file": "choose-test-scope.md"
     }
   ]
 }

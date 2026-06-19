@@ -6,8 +6,10 @@ Use this skill when a task needs a new storefront page inside an encapsulated pl
 
 - add the `FILENAME_*` constant before linking to the page
 - create `header_php.php` under `catalog/includes/modules/pages/<page>/`
+- add `main_template_vars.php` when the template needs structured variables
 - add the matching storefront language file
 - add the matching template file
+- use normal template override paths when the active template should override default rendering
 - protect user-supplied output with `zen_output_string_protected()`
 
 ## Validation
