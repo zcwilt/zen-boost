@@ -24,8 +24,16 @@ class ZenAiAssistDocSourceRegistry
                 'required' => false,
             ],
             [
-                'url' => 'https://docs.zen-cart.com/dev/schema/',
-                'tags' => ['schema'],
+                'url' => 'https://docs.zen-cart.com/dev/database/',
+                'tags' => ['database'],
+            ],
+            [
+                'url' => 'https://docs.zen-cart.com/dev/testing/',
+                'tags' => ['testing'],
+            ],
+            [
+                'url' => 'https://docs.zen-cart.com/dev/architecture/',
+                'tags' => ['architecture'],
             ],
         ];
     }
