@@ -8,6 +8,6 @@ return [
     'pluginId' => 0,
     'zcVersions' => [],
     'changelog' => '',
-    'github_repo' => '',
+    'github_repo' => 'https://github.com/zcwilt/zencart-ai-assist',
     'pluginGroups' => ['developer-tools', 'documentation'],
 ];
